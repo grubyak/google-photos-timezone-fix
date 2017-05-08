@@ -36,3 +36,4 @@ Both workarounds are not ideal which led me to implement this script which fixes
 - open browser console and type
 `window.fixAlbum()`
 - observe log in browser console for additional info
+- go back to album view and see if the order is corrected (you might need to sort entire album by opening it and selecting "Edit album" > Arrows icon: "Sort photos" > "Oldest first", this time photos will be properly sorted as date/time/timezone got corrected by the script)
