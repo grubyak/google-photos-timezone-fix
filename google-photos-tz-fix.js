@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name         google-photos-tz-fix
+// @namespace    http://tampermonkey.net/
 // @version      0.1
-// @description  Fixes Date/Time/TZ of a photos in given album
+// @description  Fixes Date/Time/TZ of a photos in given Google Photos album
 // @author       grubyak
 // @match        https://photos.google.com/*
 // @require      https://code.jquery.com/jquery-3.2.1.js
@@ -17,6 +18,7 @@
     var savingTimeout = 5 * 1000;
     var dialogTimeout = 3 * 1000;
 
+    var FILENAME_PATTERN = new RegExp(/^[0-9]{8}-[0-9]{6}-/);
     var FIELD_TZ = '[data-value][aria-hidden!="true"]';
     var FIELD_HOUR = 'input[aria-label="Hour"]';
     var FIELD_MINUTES = 'input[aria-label="Minutes"]';
@@ -202,7 +204,8 @@
                         },
                         verify: function() {
                             return ($(dialog).find(FIELD_TZ).attr('aria-label') || '').indexOf(EXPECTED_TZ) !== -1;
-                        }
+                        },
+                        value: EXPECTED_TZ
                     },
                     {
                         description: 'hour',
@@ -243,9 +246,15 @@
 
     function fixCurrentPhoto() {
         var task = $.Deferred();
+        var details = getPhotoDetails();
 
-        if (getPhotoDetails()) {
-            performUpdate(task);
+        if (details) {
+            if (details.skip) {
+                notify('-', 'skipping current photo (' + details.reason + ')');
+                task.resolve();
+            } else {
+                performUpdate(task);
+            }
         } else {
             notify('-', 'unable to find photo details');
             task.reject();
@@ -257,6 +266,14 @@
     function getPhotoDetails() {
         var info = $('div[aria-label*="Filename:"]:visible').text();
         var details = null;
+
+        if (!FILENAME_PATTERN.test(info)) {
+            return {
+                filename: info,
+                skip: true,
+                reason: 'filename pattern mismatch'
+            };
+        }
 
         if (info.length) {
             var chunks = info.split(/-/);
