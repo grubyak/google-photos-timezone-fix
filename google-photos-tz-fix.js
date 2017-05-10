@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         google-photos-tz-fix
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  Fixes Date/Time/TZ of a photos in given Google Photos album
 // @author       grubyak
 // @match        https://photos.google.com/*
@@ -15,7 +15,7 @@
     var EXPECTED_TZ = 'GMT+08:00';
     var nextPhotoTimeout = 5 * 1000;
     var updateTimeout = 3 * 1000;
-    var savingTimeout = 5 * 1000;
+    var savingTimeout = 10 * 1000;
     var dialogTimeout = 3 * 1000;
 
     var FILENAME_PATTERN = new RegExp(/^[0-9]{8}-[0-9]{6}-/);
@@ -31,6 +31,10 @@
         console.log('[' + type + ']', msg);
     }
 
+    function rand(from, plus) {
+        return from + Math.floor(Math.random() * plus);
+    }
+
     function waitFor(deadline, task, condition) {
         if (new Date().getTime() > deadline) {
             task.reject();
@@ -38,7 +42,7 @@
         }
 
         if (condition()) {
-            setTimeout(task.resolve, 100);
+            setTimeout(task.resolve, rand(200, 150));
         } else {
             notify(' ', 'waiting...');
             requestAnimationFrame(waitFor.bind(null, deadline, task, condition));
@@ -51,10 +55,10 @@
 
         if (button.length) {
             notify('+', 'opening edit dialog');
-            button.click();
+            setTimeout(function() { button.click(); }, rand(500, 150));
 
             var previousOffsets = [];
-            var compareNth = 5;
+            var compareLast = 5;
 
             waitFor(new Date().getTime() + dialogTimeout, task, function() {
                 var dialog = $('[role="dialog"]:visible');
@@ -62,13 +66,16 @@
                 var fieldsPopulated = fields.every(item => !!dialog.find(item).val());
                 var tzPopulated = !!$(dialog).find(FIELD_TZ).attr('aria-label');
                 var offset = dialog.offset();
-                var offsetCompare = previousOffsets[previousOffsets.length - compareNth];
-                var fullyVisible = offset && offsetCompare && (offsetCompare.left === offset.left) && (offsetCompare.top === offset.top);
+                var fullyVisible = false;
 
-                previousOffsets.push(offset);
+                if (offset) {
+                    previousOffsets.push(offset.top + ' ' + offset.left);
 
-                if (previousOffsets.length > compareNth) {
-                    previousOffsets.shift();
+                    if (previousOffsets.length === compareLast) {
+                        var needle = previousOffsets.shift();
+
+                        fullyVisible = previousOffsets.filter(x => x === needle).length === (compareLast - 1);
+                    }
                 }
 
                 return fieldsPopulated && tzPopulated && fullyVisible;
@@ -88,19 +95,25 @@
 
         if (typeof requestedUpdate === 'undefined') {
             if (needToSave) {
-                var previous = $('div[aria-label*="Time:"]:visible').parent().text();
-
-                notify('+', 'some fields got updated, saving changes');
-                saveButton.click();
+                var progress = '';
 
                 waitFor(new Date().getTime() + savingTimeout, task, function() {
-                    var current = $('div[aria-label*="Time:"]:visible').parent().text();
+                    var notification = $(':contains("Date changed"):visible:last');
+                    var position = notification.position() || { top: -1 };
+                    var state = (position.top > 0) ? '1' : '0';
 
-                    return previous !== current;
+                    progress += (progress.slice(-1) === state) ? '' : state;
+
+                    return (progress === '010');
                 });
+
+                notify('+', 'some fields got updated, saving changes');
+                setTimeout(function() { saveButton.click(); }, rand(500, 150));
             } else {
+                var cancelButton = $('[role="dialog"]:visible [role="button"]:contains("Cancel")');
                 notify('+', 'closing dialog without saving - details are correct');
-                $('[role="dialog"]:visible [role="button"]:contains("Cancel")').click();
+
+                setTimeout(function() { cancelButton.click(); }, rand(500, 150));
 
                 waitFor(new Date().getTime() + dialogTimeout, task, function() {
                     return $('[role="dialog"]:visible').length === 0;
@@ -271,7 +284,7 @@
             return {
                 filename: info,
                 skip: true,
-                reason: 'filename pattern mismatch'
+                reason: 'filename pattern mismatch: ' + info
             };
         }
 
@@ -315,7 +328,7 @@
         var button = $('[aria-label="View next photo"]:visible');
 
         if (button.length) {
-            button.click();
+            setTimeout(function() { button.click(); }, rand(500, 150));
 
             waitFor(new Date().getTime() + nextPhotoTimeout, task, function() {
                 var current = getPhotoDetails();
