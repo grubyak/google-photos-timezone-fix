@@ -305,6 +305,10 @@
                 var hour12h = Number(details.hour);
 
                 if (hour12h < 12) {
+                    if (hour12h === 0) {
+                        hour12h = 12;
+                    }					
+					
                     details.timeAmPm = 'AM';
                 } else {
                     if (hour12h > 12) {
