@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         google-photos-tz-fix
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Fixes Date/Time/TZ of a photos in given Google Photos album
 // @author       grubyak
 // @match        https://photos.google.com/*
@@ -14,7 +14,7 @@
 
     var EXPECTED_TZ = 'GMT+08:00';
     var nextPhotoTimeout = 5 * 1000;
-    var updateTimeout = 3 * 1000;
+    var updateTimeout = 8 * 1000;
     var savingTimeout = 10 * 1000;
     var dialogTimeout = 3 * 1000;
 
@@ -134,7 +134,7 @@
             if (requestedUpdate.action && !requestedUpdate.verify()) {
                 needToUpdate = true;
                 notify(' ', 'updating');
-                requestedUpdate.action();
+                setTimeout(requestedUpdate.action, rand(1000, 500));
             } else {
                 var field = dialog.find(requestedUpdate.field);
                 var value = requestedUpdate.value;
@@ -212,7 +212,9 @@
                                     notify('-', 'timezone list box not available');
                                 })
                                 .done(function() {
-                                    $(dialog).find(FIELD_TZ).filter(':contains("' + EXPECTED_TZ + '")').click();
+                                    setTimeout(function() {
+                                        $(dialog).find(FIELD_TZ).filter(':contains("' + EXPECTED_TZ + '")').click();
+                                    }, rand(800, 500));
                                 });
                         },
                         verify: function() {
@@ -307,8 +309,8 @@
                 if (hour12h < 12) {
                     if (hour12h === 0) {
                         hour12h = 12;
-                    }					
-					
+                    }
+
                     details.timeAmPm = 'AM';
                 } else {
                     if (hour12h > 12) {
