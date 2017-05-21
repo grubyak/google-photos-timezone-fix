@@ -1,11 +1,14 @@
 // ==UserScript==
 // @name         google-photos-tz-fix
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/grubyak/
 // @version      0.3
 // @description  Fixes Date/Time/TZ of a photos in given Google Photos album
+// @license      MIT
 // @author       grubyak
 // @match        https://photos.google.com/*
 // @require      https://code.jquery.com/jquery-3.2.1.js
+// @updateURL    https://raw.githubusercontent.com/grubyak/google-photos-timezone-fix/master/google-photos-tz-fix.js
+// @downloadURL  https://raw.githubusercontent.com/grubyak/google-photos-timezone-fix/master/google-photos-tz-fix.js
 // @grant        none
 // ==/UserScript==
 
