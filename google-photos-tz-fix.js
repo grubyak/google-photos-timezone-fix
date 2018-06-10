@@ -216,12 +216,12 @@
                                 })
                                 .done(function() {
                                     setTimeout(function() {
-                                        $(dialog).find(FIELD_TZ).filter(':contains("' + EXPECTED_TZ + '")').click();
+                                        $(dialog).find(FIELD_TZ).filter(':contains("' + EXPECTED_TZ + '")').last().click();
                                     }, rand(800, 500));
                                 });
                         },
                         verify: function() {
-                            return ($(dialog).find(FIELD_TZ).attr('aria-label') || '').indexOf(EXPECTED_TZ) !== -1;
+                            return ($(dialog).find(FIELD_TZ).filter('[aria-selected="true"]').attr('aria-label') || '').indexOf(EXPECTED_TZ) !== -1;
                         },
                         value: EXPECTED_TZ
                     },
