@@ -54,7 +54,7 @@
 
     function openDialog() {
         var task = $.Deferred();
-        var button = $('div[aria-label*="Time:"]:visible');
+        var button = $('div[aria-label*="Date:"]:visible');
 
         if (button.length) {
             notify('+', 'opening edit dialog');
@@ -113,7 +113,7 @@
                 notify('+', 'some fields got updated, saving changes');
                 setTimeout(function() { saveButton.click(); }, rand(500, 150));
             } else {
-                var cancelButton = $('[role="dialog"]:visible [role="button"]:contains("Cancel")');
+                var cancelButton = $('[role="dialog"]:visible button:visible:contains("Cancel")');
                 notify('+', 'closing dialog without saving - details are correct');
 
                 setTimeout(function() { cancelButton.click(); }, rand(500, 150));
@@ -197,7 +197,7 @@
             })
             .done(function() {
                 var dialog = $('[role="dialog"]');
-                var saveButton = $(dialog).find('div[role="button"]:contains("Save"):visible');
+                var saveButton = $(dialog).find('button:visible:contains("Save")');
                 var changes = [
                     {
                         description: 'timezone',
