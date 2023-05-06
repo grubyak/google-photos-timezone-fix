@@ -103,7 +103,8 @@
                 waitFor("Date changed notification", new Date().getTime() + savingTimeout, task, function() {
                     var notification = $(':contains("Date changed"):visible:last');
                     var position = notification.position() || { top: -1 };
-                    var state = (position.top > 0) ? '1' : '0';
+                    var positionTop = position.top;
+                    var state = (positionTop >= 0) ? '1' : '0';
 
                     progress += (progress.slice(-1) === state) ? '' : state;
 
