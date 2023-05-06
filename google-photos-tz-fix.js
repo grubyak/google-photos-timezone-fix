@@ -38,7 +38,7 @@
         return from + Math.floor(Math.random() * plus);
     }
 
-    function waitFor(deadline, task, condition) {
+    function waitFor(name, deadline, task, condition) {
         if (new Date().getTime() > deadline) {
             task.reject();
             return;
@@ -47,8 +47,8 @@
         if (condition()) {
             setTimeout(task.resolve, rand(200, 150));
         } else {
-            notify(' ', 'waiting...');
-            requestAnimationFrame(waitFor.bind(null, deadline, task, condition));
+            notify(' ', 'waiting...' + name);
+            requestAnimationFrame(waitFor.bind(null, name, deadline, task, condition));
         }
     }
 
@@ -63,7 +63,7 @@
             var previousOffsets = [];
             var compareLast = 5;
 
-            waitFor(new Date().getTime() + dialogTimeout, task, function() {
+            waitFor("Dialog appeared", new Date().getTime() + dialogTimeout, task, function() {
                 var dialog = $('[role="dialog"]:visible');
                 var fields = [ FIELD_HOUR, FIELD_MINUTES, FIELD_AMPM, FIELD_YEAR, FIELD_MONTH, FIELD_DAY ];
                 var fieldsPopulated = fields.every(item => !!dialog.find(item).val());
@@ -100,7 +100,7 @@
             if (needToSave) {
                 var progress = '';
 
-                waitFor(new Date().getTime() + savingTimeout, task, function() {
+                waitFor("Date changed notification", new Date().getTime() + savingTimeout, task, function() {
                     var notification = $(':contains("Date changed"):visible:last');
                     var position = notification.position() || { top: -1 };
                     var state = (position.top > 0) ? '1' : '0';
@@ -118,7 +118,7 @@
 
                 setTimeout(function() { cancelButton.click(); }, rand(500, 150));
 
-                waitFor(new Date().getTime() + dialogTimeout, task, function() {
+                waitFor("Dialog disappears", new Date().getTime() + dialogTimeout, task, function() {
                     return $('[role="dialog"]:visible').length === 0;
                 });
             }
@@ -157,7 +157,7 @@
             if (needToUpdate) {
                 needToSave = true;
 
-                waitFor(new Date().getTime() + updateTimeout, updater, function() {
+                waitFor("Dialog updated", new Date().getTime() + updateTimeout, updater, function() {
                     var valueUpdated;
                     var formUpdated = previousValues !== fieldDump(watchedFields);
                     var captionUpdated = caption !== dialog.find(':contains("Edit date & time"):last').text();
@@ -206,7 +206,7 @@
 
                             $(dialog).find(FIELD_TZ).closest('[role="presentation"]').click();
 
-                            waitFor(new Date().getTime() + updateTimeout, updater, function() {
+                            waitFor("find TZ field", new Date().getTime() + updateTimeout, updater, function() {
                                 return $(dialog).find(FIELD_TZ).length > 1;
                             });
 
@@ -339,7 +339,7 @@
         if (button.length) {
             setTimeout(function() { button.click(); }, rand(500, 150));
 
-            waitFor(new Date().getTime() + nextPhotoTimeout, task, function() {
+            waitFor("next photo loaded", new Date().getTime() + nextPhotoTimeout, task, function() {
                 var current = getPhotoDetails();
 
                 return previous && current && (previous.filename !== current.filename);
