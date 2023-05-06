@@ -21,7 +21,7 @@
     var savingTimeout = 10 * 1000;
     var dialogTimeout = 3 * 1000;
 
-    var FILENAME_PATTERN = new RegExp(/^[0-9]{8}-[0-9]{6}-/);
+    var FILENAME_PATTERN = new RegExp(/^[0-9]{8}[-_][0-9]{6}[-_.]/);
     var FIELD_TZ = '[data-value][aria-hidden!="true"]';
     var FIELD_HOUR = 'input[aria-label="Hour"]';
     var FIELD_MINUTES = 'input[aria-label="Minutes"]';
@@ -294,7 +294,7 @@
         }
 
         if (info.length) {
-            var chunks = info.split(/-/);
+            var chunks = info.split(/[-_]/);
             var date = chunks.shift();
             var time = chunks.shift();
 

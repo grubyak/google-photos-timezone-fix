@@ -17,7 +17,8 @@ Both workarounds are not ideal which led me to implement this script which fixes
 
 ## prerequisites
 - you need to edit script and set `EXPECTED_TZ` to desired timezone
-- your photos needs to follow naming pattern `YYYYMMDD-HHMMSS-NR`, for example: `20170414-204918-2042.jpg`
+- your photos needs to follow naming pattern `YYYYMMDD-HHMMSS-NR` or `YYYYMMDD_HHMMSS`, for example:
+`20170414-204918-2042.jpg`, `20170414_204918.JPG` or `20170414_204918-2.DNG`
 - you need to install *Tampermonkey* plugin in your browser (only Chrome was tested)
 
 ## how it works
