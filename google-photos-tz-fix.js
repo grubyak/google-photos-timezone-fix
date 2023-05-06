@@ -15,7 +15,12 @@
 (function() {
     'use strict';
 
+    // desired timezone that will be set for all photos
     var EXPECTED_TZ = 'GMT+08:00';
+    // true if you want to set timezone also for photos not following naming pattern without changing their dates
+    var SET_JUST_TZ_FOR_IMPROPERLY_NAMED = false;
+    // true if you want to change timezone for photos not following naming pattern including those with timezone already set
+    var SET_JUST_TZ_FOR_IMPROPERLY_NAMED_ONLY_IF_WAS_NOT_TZ_SET = true;
     var nextPhotoTimeout = 5 * 1000;
     var updateTimeout = 8 * 1000;
     var savingTimeout = 10 * 1000;
@@ -135,15 +140,18 @@
 
             notify('+', 'processing ' + requestedUpdate.description + ' - ' + requestedUpdate.value);
 
-            if (requestedUpdate.action && !requestedUpdate.verify()) {
-                needToUpdate = true;
-                notify(' ', 'updating');
-                setTimeout(requestedUpdate.action, rand(1000, 500));
+            let forceUpdate = SET_JUST_TZ_FOR_IMPROPERLY_NAMED && needToSave;
+            if (requestedUpdate.action) {
+                if (!requestedUpdate.verify() || forceUpdate) {
+                    needToUpdate = true;
+                    notify(' ', 'updating');
+                    setTimeout(requestedUpdate.action, rand(1000, 500));
+                }
             } else {
                 var field = dialog.find(requestedUpdate.field);
                 var value = requestedUpdate.value;
 
-                if (field.length && (field.val() !== value)) {
+                if (field.length && (field.val() !== value || forceUpdate)) {
                     needToUpdate = true;
                     notify(' ', 'updating');
 
@@ -165,11 +173,15 @@
 
                     if (requestedUpdate.action) {
                         valueUpdated = requestedUpdate.verify();
+                        if (requestedUpdate.wasNotSetBefore) {
+                            return valueUpdated;
+                        } else {
+                            return valueUpdated && formUpdated && captionUpdated
+                        }
                     } else {
                         valueUpdated = dialog.find(requestedUpdate.field).val() === requestedUpdate.value;
+                        return valueUpdated && (forceUpdate || formUpdated && captionUpdated);
                     }
-
-                    return valueUpdated && formUpdated && captionUpdated;
                 });
             } else {
                 updater.resolve();
@@ -202,24 +214,29 @@
                 var changes = [
                     {
                         description: 'timezone',
+                        wasNotSetBefore: ($(dialog).find(FIELD_TZ).filter('[aria-selected="true"]').attr('aria-label') || '') === "None set",
                         action: function() {
                             var updater = $.Deferred();
 
-                            $(dialog).find(FIELD_TZ).closest('[role="presentation"]').click();
+                            if (!details.skip || !SET_JUST_TZ_FOR_IMPROPERLY_NAMED_ONLY_IF_WAS_NOT_TZ_SET || this.wasNotSetBefore) {
+                                $(dialog).find(FIELD_TZ).closest('[role="presentation"]').click();
 
-                            waitFor("find TZ field", new Date().getTime() + updateTimeout, updater, function() {
-                                return $(dialog).find(FIELD_TZ).length > 1;
-                            });
-
-                            updater
-                                .fail(function() {
-                                    notify('-', 'timezone list box not available');
-                                })
-                                .done(function() {
-                                    setTimeout(function() {
-                                        $(dialog).find(FIELD_TZ).filter(':contains("' + EXPECTED_TZ + '")').last().click();
-                                    }, rand(800, 500));
+                                waitFor("find TZ field", new Date().getTime() + updateTimeout, updater, function() {
+                                    return $(dialog).find(FIELD_TZ).length > 1;
                                 });
+
+                                updater
+                                    .fail(function() {
+                                        notify('-', 'timezone list box not available');
+                                    })
+                                    .done(function() {
+                                        setTimeout(function() {
+                                            $(dialog).find(FIELD_TZ).filter(':contains("' + EXPECTED_TZ + '")').last().click();
+                                        }, rand(800, 500));
+                                    });
+                            } else {
+                                notify('-', 'timezone already set to different value');
+                            }
                         },
                         verify: function() {
                             return ($(dialog).find(FIELD_TZ).filter('[aria-selected="true"]').attr('aria-label') || '').indexOf(EXPECTED_TZ) !== -1;
@@ -229,32 +246,32 @@
                     {
                         description: 'hour',
                         field: FIELD_HOUR,
-                        value: details.hour
+                        value: details.hour === undefined ? dialog.find(FIELD_HOUR).val() : details.hour
                     },
                     {
                         description: 'minutes',
                         field: FIELD_MINUTES,
-                        value: details.minutes
+                        value: details.minutes === undefined ? dialog.find(FIELD_MINUTES).val() : details.minutes
                     },
                     {
                         description: 'am/pm',
                         field: FIELD_AMPM,
-                        value: details.timeAmPm
+                        value: details.timeAmPm === undefined ? dialog.find(FIELD_AMPM).val() : details.timeAmPm
                     },
                     {
                         description: 'year',
                         field: FIELD_YEAR,
-                        value: details.year
+                        value: details.year === undefined ? dialog.find(FIELD_YEAR).val() : details.year
                     },
                     {
                         description: 'month',
                         field: FIELD_MONTH,
-                        value: details.month
+                        value: details.month === undefined ? dialog.find(FIELD_MONTH).val() : details.month
                     },
                     {
                         description: 'day',
                         field: FIELD_DAY,
-                        value: details.day
+                        value: details.day === undefined ? dialog.find(FIELD_DAY).val() : details.day
                     }
                 ];
 
@@ -268,7 +285,7 @@
         var details = getPhotoDetails();
 
         if (details) {
-            if (details.skip) {
+            if (details.skip && !SET_JUST_TZ_FOR_IMPROPERLY_NAMED) {
                 notify('-', 'skipping current photo (' + details.reason + ')');
                 task.resolve();
             } else {
