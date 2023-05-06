@@ -17,7 +17,9 @@ Both workarounds are not ideal which led me to implement this script which fixes
 
 ## prerequisites
 - you need to edit script and set `EXPECTED_TZ` to desired timezone
-- your photos needs to follow naming pattern `YYYYMMDD-HHMMSS-NR`, for example: `20170414-204918-2042.jpg`
+- your photos needs to follow naming pattern `YYYYMMDD-HHMMSS-NR` or `YYYYMMDD_HHMMSS`, for example:
+`20170414-204918-2042.jpg`, `20170414_204918.JPG` or `20170414_204918-2.DNG`
+(there is an option to change timezone without changing time for photos that do not follow the pattern, see `SET_JUST_TZ_FOR_IMPROPERLY_NAMED`)
 - you need to install *Tampermonkey* plugin in your browser (only Chrome was tested)
 
 ## how it works
@@ -31,6 +33,7 @@ Both workarounds are not ideal which led me to implement this script which fixes
 
 ## how to use it
 - open *Tampermonkey* options and add google-photos-timezone-fix script
+- set `EXPECTED_TZ` in script to desired timezone
 - navigate to https://photos.google.com/ and open album which you want to edit
 - open first photo and open photo details sidebar by clicking "info" icon
 - open browser console and type
