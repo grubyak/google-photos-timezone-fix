@@ -125,7 +125,6 @@
         } else {
             var updater = $.Deferred();
             var dialog = $('[role="dialog"]');
-            var caption = dialog.find(':contains("Edit date & time"):last').text();
 
             var watchedFields = [ FIELD_YEAR, FIELD_MONTH, FIELD_DAY, FIELD_HOUR, FIELD_MINUTES, FIELD_AMPM ];
             var fieldDump = y => y.map(x => dialog.find(x).val()).join('');
@@ -160,7 +159,6 @@
                 waitFor(new Date().getTime() + updateTimeout, updater, function() {
                     var valueUpdated;
                     var formUpdated = previousValues !== fieldDump(watchedFields);
-                    var captionUpdated = caption !== dialog.find(':contains("Edit date & time"):last').text();
 
                     if (requestedUpdate.action) {
                         valueUpdated = requestedUpdate.verify();
@@ -168,7 +166,7 @@
                         valueUpdated = dialog.find(requestedUpdate.field).val() === requestedUpdate.value;
                     }
 
-                    return valueUpdated && formUpdated && captionUpdated;
+                    return valueUpdated && formUpdated;
                 });
             } else {
                 updater.resolve();
